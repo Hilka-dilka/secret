@@ -1,13 +1,5 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-
-local IS_SERVER = RunService:IsServer()
-local IS_CLIENT = RunService:IsClient()
-
-if IS_SERVER then
-    return
-end
 
 local function findPlayerByName(name)
     if not name or type(name) ~= "string" then
@@ -100,19 +92,13 @@ end
 
 local function teleportToCamera()
     local Character = LocalPlayer.Character
-    if not Character then
-        return
-    end
+    if not Character then return end
     
     local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-    if not HumanoidRootPart then
-        return
-    end
+    if not HumanoidRootPart then return end
     
     local Camera = workspace.CurrentCamera
-    if not Camera then
-        return
-    end
+    if not Camera then return end
     
     local camCFrame = Camera.CFrame
     local camPosition = camCFrame.Position
@@ -120,9 +106,7 @@ local function teleportToCamera()
     
     local teleportPosition = camPosition + (lookVector * 3)
     
-    pcall(function()
-        HumanoidRootPart.CFrame = CFrame.new(teleportPosition, teleportPosition + lookVector)
-    end)
+    HumanoidRootPart.CFrame = CFrame.new(teleportPosition, teleportPosition + lookVector)
 end
 
 local function setGravity(value)
