@@ -589,7 +589,7 @@ end
 
 -- ===== ;GOTOCAM (ВАША ВЕРСИЯ) =====
 local function teleportToCamera()
-    local Character = LocalPlayer.Character
+    local Character = Player.Character
     if not Character then return end
     
     local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
@@ -598,12 +598,15 @@ local function teleportToCamera()
     local Camera = workspace.CurrentCamera
     if not Camera then return end
     
+    -- Получаем позицию и направление камеры
     local camCFrame = Camera.CFrame
     local camPosition = camCFrame.Position
     local lookVector = camCFrame.LookVector
     
+    -- Телепортируемся немного вперед от камеры, чтобы не застрять в объектах
     local teleportPosition = camPosition + (lookVector * 3)
     
+    -- Устанавливаем новую позицию
     HumanoidRootPart.CFrame = CFrame.new(teleportPosition, teleportPosition + lookVector)
 end
 
@@ -800,14 +803,19 @@ local function toggleNoclip()
     end
 end
 
+Player.Chatted:Connect(function(message)
+    local cmd = message:lower():gsub("%s+", "")
+    
+    if cmd == ";gotocam" or cmd == ";gotocamera" or cmd == ";gotocampos" then
+        teleportToCamera()
+    end
+end)
+
 LocalPlayer.Chatted:Connect(function(message)
     local cleanMsg = string.lower(message)
     
     if string.sub(cleanMsg, 1, 5) == ";goto" then
         teleportToPlayer(message)
-    
-    elseif cleanMsg == ";gotocam" or cleanMsg == ";gotocamera" or cleanMsg == ";gotocampos" then
-        teleportToCamera()
         
     elseif string.sub(cleanMsg, 1, 9) == ";gravity " then
         local value = string.sub(message, 10)
