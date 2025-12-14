@@ -372,40 +372,9 @@ do
         local cameraFocus
         local cameraCFrame
         local cameraFieldOfView
-        local screenGuis = {}
-        local coreGuis = {
-            Backpack = true,
-            Chat = false,
-            Health = true,
-            PlayerList = true,
-        }
-        local setCores = {
-            BadgesNotificationsActive = true,
-            PointsNotificationsActive = true,
-        }
+
         function PlayerState.Push()
-            for name in pairs(coreGuis) do
-                coreGuis[name] = StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType[name])
-                if name ~= "Chat" then
-                    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType[name], false)
-                end
-            end
-            for name in pairs(setCores) do
-                setCores[name] = StarterGui:GetCore(name)
-                StarterGui:SetCore(name, false)
-            end
-            local playergui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
-            if playergui then
-                for _, gui in pairs(playergui:GetChildren()) do
-                    if gui:IsA("ScreenGui") and gui.Enabled then
-                        if gui.Name:find("Chat", 1, true) or gui.Name:find("чат", 1, true) then
-                        else
-                            screenGuis[#screenGuis + 1] = gui
-                            gui.Enabled = false
-                        end
-                    end
-                end
-            end
+
             cameraFieldOfView = Camera.FieldOfView
             Camera.FieldOfView = 70
             cameraType = Camera.CameraType
@@ -418,17 +387,7 @@ do
             UserInputService.MouseBehavior = Enum.MouseBehavior.Default
         end
         function PlayerState.Pop()
-            for name, isEnabled in pairs(coreGuis) do
-                StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType[name], isEnabled)
-            end
-            for name, isEnabled in pairs(setCores) do
-                StarterGui:SetCore(name, isEnabled)
-            end
-            for _, gui in pairs(screenGuis) do
-                if gui.Parent then
-                    gui.Enabled = true
-                end
-            end
+            
             Camera.FieldOfView = cameraFieldOfView
             cameraFieldOfView = nil
             Camera.CameraType = cameraType
@@ -490,11 +449,6 @@ do
             return Enum.ContextActionResult.Pass
         end
         ContextActionService:BindActionAtPriority("FreecamToggle", HandleActivationInput, false, TOGGLE_INPUT_PRIORITY, FREECAM_MACRO_KB[#FREECAM_MACRO_KB])
-        
-        -- Автоматически включаем Freecam при запуске
-        task.wait(1)
-        StartFreecam()
-        freecamEnabled = true
     end
 end
 
