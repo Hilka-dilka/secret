@@ -803,19 +803,14 @@ local function toggleNoclip()
     end
 end
 
-Player.Chatted:Connect(function(message)
-    local cmd = message:lower():gsub("%s+", "")
-    
-    if cmd == ";gotocam" or cmd == ";gotocamera" or cmd == ";gotocampos" then
-        teleportToCamera()
-    end
-end)
-
 LocalPlayer.Chatted:Connect(function(message)
     local cleanMsg = string.lower(message)
     
     if string.sub(cleanMsg, 1, 5) == ";goto" then
         teleportToPlayer(message)
+
+    elseif cleanMsg == ";tptocam" or cleanMsg == ";tocam" then
+        teleportToCamera()
         
     elseif string.sub(cleanMsg, 1, 9) == ";gravity " then
         local value = string.sub(message, 10)
