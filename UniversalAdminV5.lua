@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local plrs = game:GetService("Players").LocalPlayer
 local LocalPlayer = Players.LocalPlayer
 
 -- ===== FULLBRIGHT =====
@@ -589,25 +590,42 @@ end
 
 -- ===== ;GOTOCAM (ВАША ВЕРСИЯ) =====
 local function teleportToCamera()
-    local Character = Player.Character
-    if not Character then return end
+    -- Используем LocalPlayer вместо неопределенной переменной Player
+    local character = LocalPlayer.Character
+    if not character then 
+        print("Error: No character found!")
+        return 
+    end
     
-    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-    if not HumanoidRootPart then return end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart") or 
+                            character:FindFirstChild("Torso") or
+                            character:FindFirstChild("UpperTorso")
+    if not humanoidRootPart then 
+        print("Error: No root part found!")
+        return 
+    end
     
-    local Camera = workspace.CurrentCamera
-    if not Camera then return end
+    local camera = workspace.CurrentCamera
+    if not camera then 
+        print("Error: No camera found!")
+        return 
+    end
     
     -- Получаем позицию и направление камеры
-    local camCFrame = Camera.CFrame
+    local camCFrame = camera.CFrame
     local camPosition = camCFrame.Position
     local lookVector = camCFrame.LookVector
     
     -- Телепортируемся немного вперед от камеры, чтобы не застрять в объектах
-    local teleportPosition = camPosition + (lookVector * 3)
+    local teleportPosition = camPosition + (lookVector * 5)
+    
+    -- Добавляем немного высоты
+    teleportPosition = teleportPosition + Vector3.new(0, 2, 0)
     
     -- Устанавливаем новую позицию
-    HumanoidRootPart.CFrame = CFrame.new(teleportPosition, teleportPosition + lookVector)
+    humanoidRootPart.CFrame = CFrame.new(teleportPosition, teleportPosition + lookVector)
+    
+    print("Teleported to camera position!")
 end
 
 local function setGravity(value)
@@ -808,8 +826,8 @@ LocalPlayer.Chatted:Connect(function(message)
     
     if string.sub(cleanMsg, 1, 5) == ";goto" then
         teleportToPlayer(message)
-
-    elseif cleanMsg == ";tptocam" or cleanMsg == ";tocam" then
+    
+    elseif cleanMsg == ";tocam" or cleanMsg == ";tptocam" or cleanMsg == ";tptocamera" then
         teleportToCamera()
         
     elseif string.sub(cleanMsg, 1, 9) == ";gravity " then
