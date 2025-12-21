@@ -800,7 +800,6 @@ LocalPlayer.Chatted:Connect(function(message)
         makeInvisible()
     elseif cleanMsg == ";vis" or cleanMsg == ";visible" then
         makeVisible()
-        end
         
     elseif cleanMsg == ";noclip" then
         enableNoclip()
