@@ -800,19 +800,12 @@ LocalPlayer.Chatted:Connect(function(message)
         makeInvisible()
     elseif cleanMsg == ";vis" or cleanMsg == ";visible" then
         makeVisible()
-    elseif cleanMsg == ";toggleinvis" then
-        if IsInvisible then
-            makeVisible()
-        else
-            makeInvisible()
         end
         
     elseif cleanMsg == ";noclip" then
         enableNoclip()
     elseif cleanMsg == ";clip" then
         disableNoclip()
-    elseif cleanMsg == ";toggle" then
-        toggleNoclip()
     end
 end)
 
@@ -833,6 +826,6 @@ _G.noclip = enableNoclip
 _G.clip = disableNoclip
 _G.togglenoclip = toggleNoclip
 
-print("Commands: ;goto player_name, ;gotocam, ;gravity number, ;speed number, ;jump number, ;invis, ;vis, ;toggleinvis, ;noclip, ;clip, ;toggle")
+print("Commands: ;goto player_name, ;tocam, ;gravity number, ;speed number, ;jump number, ;invis, ;vis, ;noclip, ;clip,")
 print("Fullbright: Automatically enabled")
 print("Freecam: Automatically enabled (Shift+P to toggle)")
