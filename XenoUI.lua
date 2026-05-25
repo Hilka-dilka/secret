@@ -950,14 +950,14 @@ UIS.InputBegan:Connect(function(i, gp)
         if settings.fly then
             settings.fly = false
             if flyToggleSlider then 
-                flyToggleSlider:Set(false, settings.flySpeed)
+                flyToggleSlider:Set(false)
                 -- Принудительно обновляем состояние тоггла в UI
                 flyToggleSlider:SetValue(false)
             end
         else
             settings.fly = true
             if flyToggleSlider then 
-                flyToggleSlider:Set(true, settings.flySpeed)
+                flyToggleSlider:Set(true)
                 -- Принудительно обновляем состояние тоггла в UI
                 flyToggleSlider:SetValue(true)
             end
