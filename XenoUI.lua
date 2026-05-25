@@ -33,8 +33,39 @@ local settings = {
     wallCheck = false,
     aimKey = Enum.UserInputType.MouseButton2,
     gravityEnabled = false,
-    gravityValue = 50
+    gravityValue = 50,
+    teleportToMouse = false
 }
+
+------------------------------------------------------------------------
+-- Teleport to Mouse Function
+------------------------------------------------------------------------
+local function teleportToMouse()
+    local char = player.Character
+    if not char then return end
+    
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    local mousePos = mouse.Hit
+    if mousePos and mousePos.Position then
+        local wasAnchored = hrp.Anchored
+        
+        if wasAnchored then
+            hrp.Anchored = false
+        end
+        
+        hrp.CFrame = CFrame.new(mousePos.Position)
+        
+        task.wait(0.05)
+        
+        if wasAnchored then
+            hrp.Anchored = true
+        end
+        
+        print("Teleported to mouse position")
+    end
+end
 
 ------------------------------------------------------------------------
 -- aimbot
@@ -525,6 +556,7 @@ local walkToggleSlider = nil
 local jumpToggleSlider = nil
 local hitboxToggleSlider = nil
 local freecamToggle = nil
+local teleportToMouseToggle = nil
 
 
 local CombatTab = Window:CreateTab("⚔ COMBAT")
@@ -693,7 +725,7 @@ end)
 ------------------------------------------------------------------------
 -- Teleport Section
 ------------------------------------------------------------------------
-local OtherSec = OtherTab:CreateSection("📍 TELEPORT")
+local TeleportSec = OtherTab:CreateSection("📍 TELEPORT")
 
 local selectedPlayer = nil
 
@@ -732,12 +764,12 @@ local function getPlayersList()
     return playersList
 end
 
-local playerDropdown = OtherSec:CreateDropdown("Select Player", getPlayersList(), "Select...", function(selected)
+local playerDropdown = TeleportSec:CreateDropdown("Select Player", getPlayersList(), "Select...", function(selected)
     selectedPlayer = selected
     print("Selected: " .. (selected or "none"))
 end)
 
-OtherSec:CreateButton("📌 Teleport to Selected", function()
+TeleportSec:CreateButton("📌 Teleport to Selected", function()
     if selectedPlayer and selectedPlayer ~= "No players" and selectedPlayer ~= "Select..." then
         local target = Players:FindFirstChild(selectedPlayer)
         if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
@@ -751,7 +783,7 @@ OtherSec:CreateButton("📌 Teleport to Selected", function()
     end
 end)
 
-OtherSec:CreateButton("🎥 Teleport to Camera", function()
+TeleportSec:CreateButton("🎥 Teleport to Camera", function()
     local char = player.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
         safeTeleport(cam.CFrame)
@@ -759,11 +791,20 @@ OtherSec:CreateButton("🎥 Teleport to Camera", function()
     end
 end)
 
-OtherSec:CreateButton("🔄 Refresh List", function()
+
+TeleportSec:CreateButton("🔄 Refresh List", function()
     local newList = getPlayersList()
     playerDropdown:SetOptions(newList)
     print("Players refreshed: " .. table.concat(newList, ", "))
 end)
+
+-- Teleport to Mouse Toggle (Ctrl + Left Mouse Click)
+teleportToMouseToggle = TeleportSec:CreateToggle("🎯 Teleport to Mouse (Ctrl+LMB)", false, function(v)
+    settings.teleportToMouse = v
+    print("Teleport to Mouse: " .. (v and "ON" or "OFF"))
+end)
+
+
 
 -- Gravity
 local GravitySec = OtherTab:CreateSection("🌍 GRAVITY")
@@ -1009,6 +1050,11 @@ UIS.InputBegan:Connect(function(i, gp)
             hrp.CFrame = hrp.CFrame + Vector3.new(0, settings.jumpPower, 0)
         end
     end
+    
+    -- TELEPORT TO MOUSE (Ctrl + Left Click)
+    if settings.teleportToMouse and i.UserInputType == Enum.UserInputType.MouseButton1 and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+        teleportToMouse()
+    end
 end)
 
 -- disable max zoom
@@ -1017,4 +1063,4 @@ local player = Players.LocalPlayer
 
 player.CameraMaxZoomDistance = 1000
 
-print("XENO DARK V17 [MinimalUI] Loaded! Fly Q key FIXED!")
+print("XENO DARK V17 [MinimalUI] Loaded! Fly Q key FIXED! Teleport to Mouse added (Ctrl+Click)!")
