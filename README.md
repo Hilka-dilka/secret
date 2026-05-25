@@ -5,5 +5,5 @@ loadstring(game:HttpGet("https://github.com/Hilka-dilka/secret/raw/refs/heads/ma
 
 load xeno.lua
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Hilka-dilka/secret/refs/heads/main/Xeno.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Hilka-dilka/secret/refs/heads/main/XenoUI2.lua"))()
 ```
