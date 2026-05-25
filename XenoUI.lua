@@ -592,10 +592,91 @@ end)
 -- Other
 ------------------------------------------------------------------------
 local OtherTab = Window:CreateTab("🛠 OTHER")
+
+------------------------------------------------------------------------
+-- View Section (Spectate)
+------------------------------------------------------------------------
+local ViewSec = OtherTab:CreateSection("👁 VIEW")
+
+local selectedViewPlayer = nil
+local isSpectating = false
+
+local function getViewPlayersList()
+    local playersList = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player then
+            table.insert(playersList, p.Name)
+        end
+    end
+    if #playersList == 0 then
+        table.insert(playersList, "No players")
+    end
+    return playersList
+end
+
+local function refreshViewDropdown()
+    local newList = getViewPlayersList()
+    viewPlayerDropdown:SetOptions(newList)
+    if #newList > 0 and newList[1] ~= "No players" then
+        viewPlayerDropdown:SetValue(newList[1])
+        selectedViewPlayer = newList[1]
+    else
+        viewPlayerDropdown:SetValue("No players")
+        selectedViewPlayer = nil
+    end
+end
+
+local function startSpectating()
+    if selectedViewPlayer and selectedViewPlayer ~= "No players" and selectedViewPlayer ~= "Select..." then
+        local target = Players:FindFirstChild(selectedViewPlayer)
+        if target and target.Character then
+            workspace.CurrentCamera.CameraSubject = target.Character
+            isSpectating = true
+            print("Now spectating: " .. selectedViewPlayer)
+        else
+            print("Player not found or no character: " .. selectedViewPlayer)
+        end
+    else
+        print("Select a player first!")
+    end
+end
+
+local function stopSpectating()
+    local char = player.Character
+    if char then
+        workspace.CurrentCamera.CameraSubject = char
+        isSpectating = false
+        print("Stopped spectating")
+    end
+end
+
+local viewPlayerDropdown = ViewSec:CreateDropdown("Select player:", getViewPlayersList(), "Select...", function(selected)
+    selectedViewPlayer = selected
+    if isSpectating then
+        -- If currently spectating, update to new player
+        startSpectating()
+    end
+end)
+
+ViewSec:CreateButton("🔄 Refresh Players", function()
+    refreshViewDropdown()
+    print("Players list refreshed!")
+end)
+
+ViewSec:CreateToggle("👁 Spectate Mode", false, function(v)
+    if v then
+        startSpectating()
+    else
+        stopSpectating()
+    end
+end)
+
+------------------------------------------------------------------------
+-- Teleport Section
+------------------------------------------------------------------------
 local OtherSec = OtherTab:CreateSection("📍 TELEPORT")
 
 local selectedPlayer = nil
-
 
 local function safeTeleport(targetCFrame)
     local char = player.Character
@@ -604,25 +685,20 @@ local function safeTeleport(targetCFrame)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     
-
     local wasAnchored = hrp.Anchored
-
+    
     if wasAnchored then
         hrp.Anchored = false
     end
     
-
     hrp.CFrame = targetCFrame
     
-
     task.wait(0.05)
     
-
     if wasAnchored then
         hrp.Anchored = true
     end
 end
-
 
 local function getPlayersList()
     local playersList = {}
@@ -636,7 +712,6 @@ local function getPlayersList()
     end
     return playersList
 end
-
 
 local playerDropdown = OtherSec:CreateDropdown("Select Player", getPlayersList(), "Select...", function(selected)
     selectedPlayer = selected
@@ -667,6 +742,7 @@ end)
 
 OtherSec:CreateButton("🔄 Refresh List", function()
     local newList = getPlayersList()
+    playerDropdown:SetOptions(newList)
     print("Players refreshed: " .. table.concat(newList, ", "))
 end)
 
