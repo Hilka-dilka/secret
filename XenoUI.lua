@@ -1,10 +1,8 @@
 --[[
     XENO DARK V17 - MinimalUI Version
-    Все слайдеры заменены на ToggleSlider (тоггл + слайдер в одном)
-    Aimbot секция не тронута
 ]]
 
--- Загрузка библиотеки MinimalUI
+-- MinimalUI
 local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hilka-dilka/MinimalUI/main/MinimalUI.lua"))()
 
 local player = game.Players.LocalPlayer
@@ -39,7 +37,7 @@ local settings = {
 }
 
 ------------------------------------------------------------------------
--- ПЛАВНЫЙ АИМБОТ
+-- aimbot
 ------------------------------------------------------------------------
 local Drawing = Drawing or {}
 local fovCircle = Drawing.new("Circle")
@@ -296,7 +294,7 @@ end)
 
 
 ------------------------------------------------------------------------
--- FREECAM (ИСПРАВЛЕННАЯ ВЕРСИЯ - движение без зажатой ПКМ)
+-- FREECAM
 ------------------------------------------------------------------------
 local pi, rad, clamp, exp = math.pi, math.rad, math.clamp, math.exp
 local NAV_GAIN = Vector3.new(1, 1, 1)*64
@@ -330,47 +328,43 @@ local velSpring, panSpring, fovSpring = Spring.new(1.5, Vector3.new()), Spring.n
 local InputMap = {keys = {W=0,A=0,S=0,D=0,E=0,Q=0}, mouse = {Delta = Vector2.new(), Wheel = 0}}
 local freecamActive = false
 local rightMousePressed = false
-local lastMousePos = nil -- Для сохранения позиции мыши
+local lastMousePos = nil
 
 local function StepFreecam(dt)
     if not freecamActive then 
         return 
     end
     
-    -- Обновляем векторы движения (всегда, независимо от ПКМ)
-    local moveDir = Vector3.new(InputMap.keys.D - InputMap.keys.A, InputMap.keys.E - InputMap.keys.Q, InputMap.keys.S - InputMap.keys.W)
-    local speedMult = (UIS:IsKeyDown(Enum.KeyCode.LeftShift) and 0.25 or 1)
-    local vel = velSpring:Update(dt, moveDir * speedMult)
+
+    local moveZ = InputMap.keys.W - InputMap.keys.S 
+    local moveX = InputMap.keys.D - InputMap.keys.A
+    local moveY = InputMap.keys.E - InputMap.keys.Q
     
-    -- Обновляем зум колесиком (всегда)
+    local speedMult = (UIS:IsKeyDown(Enum.KeyCode.LeftShift) and 0.25 or 1)
+    local vel = velSpring:Update(dt, Vector3.new(moveX, moveY, moveZ) * speedMult)
+
     local fov = fovSpring:Update(dt, InputMap.mouse.Wheel)
     InputMap.mouse.Wheel = 0
     cameraFov = clamp(cameraFov + fov*FOV_GAIN*dt, 1, 120)
-    
-    -- Если зажата ПКМ - обновляем поворот камеры от движения мыши
+
     if rightMousePressed then
         local pan = panSpring:Update(dt, InputMap.mouse.Delta)
         InputMap.mouse.Delta = Vector2.new()
         cameraRot = cameraRot + pan*PAN_GAIN*dt
         cameraRot = Vector2.new(clamp(cameraRot.x, -PITCH_LIMIT, PITCH_LIMIT), cameraRot.y%(2*pi))
     end
-    
-    -- Двигаем позицию камеры (всегда, используя текущий cameraRot)
+
     local moveVector = Vector3.new()
     if vel.X ~= 0 or vel.Y ~= 0 or vel.Z ~= 0 then
-        -- Преобразуем движение в локальные координаты камеры
-        local camForward = CFrame.fromOrientation(cameraRot.x, cameraRot.y, 0).LookVector
-        local camRight = CFrame.fromOrientation(cameraRot.x, cameraRot.y, 0).RightVector
-        local camUp = CFrame.fromOrientation(cameraRot.x, cameraRot.y, 0).UpVector
-        
-        moveVector = moveVector + camForward * vel.Z  -- W/S
-        moveVector = moveVector + camRight * vel.X   -- A/D
-        moveVector = moveVector + camUp * vel.Y      -- E/Q
+        local camCF = CFrame.fromOrientation(cameraRot.x, cameraRot.y, 0)
+
+        moveVector = moveVector + camCF.LookVector * vel.Z      
+        moveVector = moveVector + camCF.RightVector * vel.X     
+        moveVector = moveVector + camCF.UpVector * vel.Y        
     end
     
     cameraPos = cameraPos + moveVector * NAV_GAIN * dt
-    
-    -- Применяем CFrame камеры
+
     local cf = CFrame.new(cameraPos) * CFrame.fromOrientation(cameraRot.x, cameraRot.y, 0)
     cam.CFrame = cf
     cam.Focus = cf
@@ -386,8 +380,7 @@ local function ToggleFreecam(state)
         velSpring:Reset(Vector3.new())
         panSpring:Reset(Vector2.new())
         fovSpring:Reset(0)
-        
-        -- Отключаем коллизии персонажа при включении freecam
+
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Anchored = true
         end
@@ -397,8 +390,7 @@ local function ToggleFreecam(state)
         UIS.MouseBehavior = Enum.MouseBehavior.Default
     else
         RunService:UnbindFromRenderStep("Freecam")
-        
-        -- Включаем коллизии обратно
+
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             player.Character.HumanoidRootPart.Anchored = false
         end
@@ -410,7 +402,6 @@ local function ToggleFreecam(state)
     end
 end
 
--- Обработка ПКМ
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and settings.freecam and freecamActive then
         if input.UserInputType == Enum.UserInputType.MouseButton2 then
@@ -429,7 +420,6 @@ UIS.InputEnded:Connect(function(input, gameProcessed)
     end
 end)
 
--- Обработка движения мыши для поворота
 UIS.InputChanged:Connect(function(input)
     if settings.freecam and freecamActive and rightMousePressed then
         if input.UserInputType == Enum.UserInputType.MouseMovement then
@@ -441,7 +431,7 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
--- Обработка клавиш движения (всегда работает)
+
 UIS.InputBegan:Connect(function(i)
     if i.KeyCode and i.KeyCode.Name:len() == 1 and settings.freecam and freecamActive then
         InputMap.keys[i.KeyCode.Name] = 1
@@ -456,7 +446,7 @@ end)
 
 
 ------------------------------------------------------------------------
--- NOCLIP С ИСПРАВЛЕННЫМ ВЫКЛЮЧЕНИЕМ
+-- NOCLIP
 ------------------------------------------------------------------------
 local noclipConnection = nil
 local noclipActive = false
@@ -505,7 +495,7 @@ end
 
 
 ------------------------------------------------------------------------
--- MINIMALUI МЕНЮ (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+-- UI
 ------------------------------------------------------------------------
 
 local Window = UI:CreateWindow("XENO DARK V17")
@@ -518,98 +508,95 @@ local jumpToggleSlider = nil
 local hitboxToggleSlider = nil
 local freecamToggle = nil
 
--- Вкладка Combat
+
 local CombatTab = Window:CreateTab("⚔ COMBAT")
 
--- Секция Movement (ВСЕ В ОДНОМ TOGGLESLIDER)
+
 local MovementSec = CombatTab:CreateSection("🏃 MOVEMENT")
 
--- FLY: тоггл + скорость в одном элементе
 flyToggleSlider = MovementSec:CreateToggleSlider("Fly (Q)", 0.1, 5, 0.8, false, function(enabled, value)
     settings.fly = enabled
     settings.flySpeed = value
 end)
 
--- WALK BOOST: тоггл + сила в одном элементе
 walkToggleSlider = MovementSec:CreateToggleSlider("Walk Boost", 0.1, 3, 0.5, false, function(enabled, value)
     settings.walkBoost = enabled
     settings.walkPower = value
 end)
 
--- JUMP BOOST: тоггл + сила прыжка в одном элементе
 jumpToggleSlider = MovementSec:CreateToggleSlider("Jump Boost", 1, 15, 3.5, false, function(enabled, value)
     settings.jumpBoost = enabled
     settings.jumpPower = value
 end)
 
--- No Jump Cooldown (отдельный тоггл, без слайдера)
 MovementSec:CreateToggle("No Jump Cooldown", false, function(v)
     settings.noJumpCooldown = v
 end)
 
--- Секция Visual
 local VisualSec = CombatTab:CreateSection("👁 VISUAL")
 
--- ESP (отдельный тоггл)
+
 VisualSec:CreateToggle("ESP Full", false, function(v)
     settings.esp = v
 end)
 
--- FullBright (отдельный тоггл)
 VisualSec:CreateToggle("FullBright", false, function(v)
     settings.fullbright = v
 end)
 
--- NoClip (отдельный тоггл)
 VisualSec:CreateToggle("NoClip", false, function(v)
     toggleNoclip(v)
 end)
 
--- HITBOX: тоггл + размер в одном элементе
 hitboxToggleSlider = VisualSec:CreateToggleSlider("Hitbox Extender", 1, 20, 5, false, function(enabled, value)
     settings.hitbox = enabled
     settings.hitboxSize = value
 end)
 
--- Freecam (отдельный тоггл)
 freecamToggle = VisualSec:CreateToggle("Freecam (Shift+P)", false, function(v)
     settings.freecam = v
     ToggleFreecam(settings.freecam)
 end)
 
--- Секция Aimbot (без изменений)
 local AimbotSec = CombatTab:CreateSection("🎯 AIMBOT")
+
+
 AimbotSec:CreateToggle("Enable Aimbot", false, function(v)
     settings.aimbot = v
 end)
+
 AimbotSec:CreateSlider("Aimbot FOV", 10, 360, 90, function(v)
     settings.aimbotFov = v
     if fovCircle then
         fovCircle.Radius = v
     end
 end)
+
 AimbotSec:CreateSlider("Smoothness", 1, 10, 5, function(v)
     settings.aimbotSmoothness = v
 end)
+
 AimbotSec:CreateToggle("Show FOV Circle", false, function(v)
     settings.showFovCircle = v
 end)
+
 AimbotSec:CreateToggle("Aim on Key (RMB)", true, function(v)
     settings.aimOnKey = v
 end)
+
 AimbotSec:CreateToggle("Wall Check", false, function(v)
     settings.wallCheck = v
 end)
 
 ------------------------------------------------------------------------
--- ВКЛАДКА OTHER (ИСПРАВЛЕННАЯ ТЕЛЕПОРТАЦИЯ ДЛЯ FREECAM)
+-- Other
 ------------------------------------------------------------------------
 local OtherTab = Window:CreateTab("🛠 OTHER")
 local OtherSec = OtherTab:CreateSection("📍 TELEPORT")
 
 local selectedPlayer = nil
 
--- Функция для временного отключения анкора при телепортации
+
 local function safeTeleport(targetCFrame)
     local char = player.Character
     if not char then return end
@@ -617,27 +604,26 @@ local function safeTeleport(targetCFrame)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     
-    -- Запоминаем был ли персонаж заанкорен (из-за freecam)
+
     local wasAnchored = hrp.Anchored
-    
-    -- Если заанкорен - временно отключаем
+
     if wasAnchored then
         hrp.Anchored = false
     end
     
-    -- Телепортируем
+
     hrp.CFrame = targetCFrame
     
-    -- Небольшая задержка чтобы телепорт прошел
+
     task.wait(0.05)
     
-    -- Возвращаем anchor обратно если был
+
     if wasAnchored then
         hrp.Anchored = true
     end
 end
 
--- Функция обновления списка игроков
+
 local function getPlayersList()
     local playersList = {}
     for _, p in pairs(Players:GetPlayers()) do
@@ -651,13 +637,12 @@ local function getPlayersList()
     return playersList
 end
 
--- Создаем дропдаун с выбором игрока
+
 local playerDropdown = OtherSec:CreateDropdown("Select Player", getPlayersList(), "Select...", function(selected)
     selectedPlayer = selected
     print("Selected: " .. (selected or "none"))
 end)
 
--- Кнопка телепортации к выбранному игроку (с учетом freecam)
 OtherSec:CreateButton("📌 Teleport to Selected", function()
     if selectedPlayer and selectedPlayer ~= "No players" and selectedPlayer ~= "Select..." then
         local target = Players:FindFirstChild(selectedPlayer)
@@ -672,7 +657,6 @@ OtherSec:CreateButton("📌 Teleport to Selected", function()
     end
 end)
 
--- Кнопка телепортации на позицию камеры (с учетом freecam)
 OtherSec:CreateButton("🎥 Teleport to Camera", function()
     local char = player.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
@@ -681,13 +665,12 @@ OtherSec:CreateButton("🎥 Teleport to Camera", function()
     end
 end)
 
--- Кнопка обновления списка
 OtherSec:CreateButton("🔄 Refresh List", function()
     local newList = getPlayersList()
     print("Players refreshed: " .. table.concat(newList, ", "))
 end)
 
--- Секция Gravity
+-- Gravity
 local GravitySec = OtherTab:CreateSection("🌍 GRAVITY")
 
 GravitySec:CreateToggleSlider("Gravity Control", 0, 196.2, 50, false, function(enabled, value)
@@ -701,7 +684,7 @@ GravitySec:CreateToggleSlider("Gravity Control", 0, 196.2, 50, false, function(e
     end
 end)
 
--- Вкладка Info (без изменений)
+-- info
 local InfoTab = Window:CreateTab("ℹ INFO")
 local InfoSec = InfoTab:CreateSection("ABOUT")
 InfoSec:CreateButton("XENO DARK V17", function()
@@ -714,27 +697,24 @@ Window:SetKey(Enum.KeyCode.RightControl)
 
 
 ------------------------------------------------------------------------
--- ОСНОВНОЙ ЛУП С ИСПРАВЛЕННЫМ ESP
+-- esp
 ------------------------------------------------------------------------
 local lastESPUpdate = 0
 
--- Функция полной очистки ESP
+
 local function clearAllESP()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= player and p.Character then
             local c = p.Character
-            
-            -- Удаляем Highlight
+
             if c:FindFirstChild("XenoESP_Highlight") then
                 c.XenoESP_Highlight:Destroy()
             end
-            
-            -- Удаляем BillboardGui с именем
+
             if c:FindFirstChild("XenoESP_Name") then
                 c.XenoESP_Name:Destroy()
             end
-            
-            -- Удаляем бокс из HumanoidRootPart или Torso
+
             local root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso")
             if root and root:FindFirstChild("XenoESP_Box") then
                 root.XenoESP_Box:Destroy()
@@ -781,8 +761,7 @@ RunService.RenderStepped:Connect(function(dt)
         Lighting.Brightness = 1
         Lighting.GlobalShadows = true
     end
-    
-    -- ESP обновление (только если включен)
+
     if settings.esp then
         if tick() - lastESPUpdate > 0.3 then
             lastESPUpdate = tick()
@@ -791,11 +770,9 @@ RunService.RenderStepped:Connect(function(dt)
                 if p ~= player and p.Character then
                     local c = p.Character
                     local humTarget = c:FindFirstChildOfClass("Humanoid")
-                    
-                    -- Пропускаем мертвых
+
                     if humTarget and humTarget.Health > 0 then
-                        
-                        -- Highlight
+
                         if not c:FindFirstChild("XenoESP_Highlight") then
                             local h = Instance.new("Highlight", c)
                             h.Name = "XenoESP_Highlight"
@@ -804,8 +781,7 @@ RunService.RenderStepped:Connect(function(dt)
                             h.OutlineColor = Color3.new(1, 1, 1)
                             h.OutlineTransparency = 0
                         end
-                        
-                        -- BillboardGui с именем
+
                         if not c:FindFirstChild("XenoESP_Name") then
                             local root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso")
                             if root then
@@ -827,7 +803,7 @@ RunService.RenderStepped:Connect(function(dt)
                             end
                         end
                         
-                        -- Бокс
+
                         local root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso")
                         if root and not root:FindFirstChild("XenoESP_Box") then
                             local box = Instance.new("BillboardGui", root)
@@ -844,7 +820,7 @@ RunService.RenderStepped:Connect(function(dt)
                             stroke.Thickness = 1
                         end
                     else
-                        -- Если игрок мертв - удаляем его ESP элементы
+
                         if c:FindFirstChild("XenoESP_Highlight") then
                             c.XenoESP_Highlight:Destroy()
                         end
@@ -860,11 +836,11 @@ RunService.RenderStepped:Connect(function(dt)
             end
         end
     else
-        -- ЕСЛИ ESP ВЫКЛЮЧЕН - ПОЛНОСТЬЮ ОЧИЩАЕМ ВСЁ
+
         clearAllESP()
     end
     
-    -- Hitbox extender (отдельно от ESP, работает всегда при включении)
+
     if settings.hitbox then
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= player and p.Character then
@@ -877,12 +853,12 @@ RunService.RenderStepped:Connect(function(dt)
             end
         end
     else
-        -- Восстанавливаем нормальный размер головы, если хитбокс выключен
+
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= player and p.Character then
                 local head = p.Character:FindFirstChild("Head")
                 if head then
-                    head.Size = Vector3.new(2, 1, 1) -- Стандартный размер головы в Roblox
+                    head.Size = Vector3.new(2, 1, 1) 
                     head.Transparency = 0
                     head.CanCollide = true
                 end
@@ -891,7 +867,6 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- Хоткеи (оставляем без изменений)
 UIS.InputBegan:Connect(function(i, gp)
     if gp then return end
     
@@ -925,4 +900,11 @@ UIS.InputBegan:Connect(function(i, gp)
     end
 end)
 
-print("XENO DARK V17 [MinimalUI] Loaded! ESP fix applied!")
+-- disable max zoom
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+player.CameraMaxZoomDistance = 1000
+-- player.CameraMinZoomDistance = 10
+
+print("XENO DARK V17 [MinimalUI] Loaded! ESP fix")
