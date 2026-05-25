@@ -949,10 +949,18 @@ UIS.InputBegan:Connect(function(i, gp)
     if i.KeyCode == Enum.KeyCode.Q then
         if settings.fly then
             settings.fly = false
-            if flyToggleSlider then flyToggleSlider:Set(false, settings.flySpeed) end
+            if flyToggleSlider then 
+                flyToggleSlider:Set(false, settings.flySpeed)
+                -- Принудительно обновляем состояние тоггла в UI
+                flyToggleSlider:SetValue(false)
+            end
         else
             settings.fly = true
-            if flyToggleSlider then flyToggleSlider:Set(true, settings.flySpeed) end
+            if flyToggleSlider then 
+                flyToggleSlider:Set(true, settings.flySpeed)
+                -- Принудительно обновляем состояние тоггла в UI
+                flyToggleSlider:SetValue(true)
+            end
         end
     end
     
@@ -960,13 +968,28 @@ UIS.InputBegan:Connect(function(i, gp)
         if settings.freecam then
             settings.freecam = false
             ToggleFreecam(false)
-            if freecamToggle then freecamToggle:Set(false) end
+            if freecamToggle then 
+                freecamToggle:Set(false)
+                freecamToggle:SetValue(false)
+            end
         else
             settings.freecam = true
             ToggleFreecam(true)
-            if freecamToggle then freecamToggle:Set(true) end
+            if freecamToggle then 
+                freecamToggle:Set(true)
+                freecamToggle:SetValue(true)
+            end
         end
     end
+    
+    -- Отдельно для ноклипа, если хочешь добавить горячую клавишу
+    -- if i.KeyCode == Enum.KeyCode.N and UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
+    --     if settings.noclip then
+    --         toggleNoclip(false)
+    --     else
+    --         toggleNoclip(true)
+    --     end
+    -- end
     
     if i.KeyCode == Enum.KeyCode.Space and settings.jumpBoost and player.Character then
         local hrp = player.Character:FindFirstChild("HumanoidRootPart")
