@@ -4,9 +4,7 @@ loadstring(game:HttpGet("https://github.com/Hilka-dilka/secret/raw/refs/heads/ma
 ```
 
 load xeno.lua
-![Uploading image.png…](https://drive.google.com/file/d/1v57zExl1zIr3LVEblxhSSOtkMM1i_Tb0/preview)
-
-
+![Uploading image.png…](https://raw.githubusercontent.com/Hilka-dilka/secret/refs/heads/main/Xeno_Icon.png)
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Hilka-dilka/secret/refs/heads/main/XenoUI2.lua"))()
