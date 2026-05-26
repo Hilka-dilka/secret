@@ -1132,121 +1132,50 @@ end)
 
 player.CameraMaxZoomDistance = 1000
 
--- ========== ФУНКЦИЯ УВЕДОМЛЕНИЯ В СТИЛЕ MINIMALUI ==========
-local function ShowMinimalNotification(iconId, message, duration)
-    duration = duration or 4
+-- ========== ИКОНКА СПРАВА СВЕРХУ (ПОЛУПРОЗРАЧНАЯ, НЕ ИСЧЕЗАЕТ) ==========
+local cornerIcon = Instance.new("ImageLabel")
+cornerIcon.Name = "MinimalUICornerIcon"
+cornerIcon.Size = UDim2.new(0, 48, 0, 48)
+cornerIcon.Position = UDim2.new(1, -58, 0, 10)
+cornerIcon.BackgroundTransparency = 1
+cornerIcon.Image = "rbxassetid://106362808798929"
+cornerIcon.ImageTransparency = 0.6 -- полупрозрачная
+cornerIcon.ScaleType = Enum.ScaleType.Fit
+cornerIcon.ZIndex = 999
+cornerIcon.Parent = player.PlayerGui
 
-    local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
-    local tweenService = game:GetService("TweenService")
+-- Анимация плавного появления
+local cornerFadeIn = tweenService:Create(cornerIcon, 
+    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
+    {ImageTransparency = 0.6}
+)
+cornerFadeIn:Play()
 
-    -- ГЛАВНЫЙ КОНТЕЙНЕР (стиль как у M.Sec / M.Main)
-    local notification = Instance.new("Frame")
-    notification.Name = "MinimalUINotification"
-    notification.Size = UDim2.new(0, 320, 0, 80)
-    notification.Position = UDim2.new(1, -340, 1, -100) -- Начальная позиция (за экраном)
-    notification.BackgroundColor3 = Color3.fromRGB(26, 26, 42) -- M.Sec
-    notification.BackgroundTransparency = 1
-    notification.BorderSizePixel = 0
-    notification.Parent = playerGui
-
-    -- Скругление углов (как у секций)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = notification
-
-    -- Обводка (как у элементов MinimalUI)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(40, 40, 60) -- M.Border
-    stroke.Thickness = 1
-    stroke.Transparency = 0.5
-    stroke.Parent = notification
-
-    -- КНОПКА ЗАКРЫТИЯ (круглая, как точки macOS, но слева)
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Name = "CloseButton"
-    closeBtn.Size = UDim2.new(0, 24, 0, 24)
-    closeBtn.Position = UDim2.new(0, 10, 0, 10)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 60) -- M.Border
-    closeBtn.Text = "✕"
-    closeBtn.TextColor3 = Color3.fromRGB(228, 228, 231) -- M.Text
-    closeBtn.TextSize = 14
-    closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.AutoButtonColor = false
-    closeBtn.Parent = notification
-
-    -- Круглая форма кнопки
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(1, 0)
-    closeCorner.Parent = closeBtn
-
-    -- Hover-эффект для кнопки (как в меню)
-    closeBtn.MouseEnter:Connect(function()
-        tweenService:Create(closeBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 80)}):Play()
-    end)
-    closeBtn.MouseLeave:Connect(function()
-        tweenService:Create(closeBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
-    end)
-
-    -- ИКОНКА (по центру слева)
-    local icon = Instance.new("ImageLabel")
-    icon.Name = "Icon"
-    icon.Size = UDim2.new(0, 40, 0, 40)
-    icon.Position = UDim2.new(0, 50, 0.5, -20)
-    icon.BackgroundTransparency = 1
-    icon.Image = "rbxassetid://" .. tostring(iconId)
-    icon.ScaleType = Enum.ScaleType.Fit
-    icon.Parent = notification
-
-    -- ТЕКСТ (справа от иконки)
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Name = "TextLabel"
-    textLabel.Size = UDim2.new(1, -110, 1, 0)
-    textLabel.Position = UDim2.new(0, 100, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = message or "Loaded successfully!"
-    textLabel.TextColor3 = Color3.fromRGB(228, 228, 231) -- M.Text
-    textLabel.TextSize = 13
-    textLabel.Font = Enum.Font.GothamSemibold
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.TextYAlignment = Enum.TextYAlignment.Center
-    textLabel.Parent = notification
-
-    -- Анимация появления
-    notification.BackgroundTransparency = 1
-    local appearTween = tweenService:Create(notification, 
-        TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
-        {BackgroundTransparency = 0, Position = UDim2.new(1, -340, 1, -100)}
-    )
-    appearTween:Play()
-
-    -- Закрытие по кнопке
-    local function closeNotification()
-        local disappearTween = tweenService:Create(notification, 
-            TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), 
-            {BackgroundTransparency = 1, Position = UDim2.new(1, -320, 1, -100)}
-        )
-        disappearTween:Play()
-        disappearTween.Completed:Connect(function()
-            notification:Destroy()
-        end)
-    end
-
-    closeBtn.MouseButton1Click:Connect(closeNotification)
-
-    -- Автоматическое закрытие через duration секунд
-    task.delay(duration, function()
-        if notification and notification.Parent then
-            closeNotification()
+-- Следим за закрытием меню (если GUI удалится, удаляем и иконку)
+local function checkMenuClosed()
+    local menuGui = player.PlayerGui:FindFirstChild("MinimalUI")
+    if not menuGui then
+        if cornerIcon and cornerIcon.Parent then
+            local cornerFadeOut = tweenService:Create(cornerIcon, 
+                TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), 
+                {ImageTransparency = 1}
+            )
+            cornerFadeOut:Play()
+            cornerFadeOut.Completed:Connect(function()
+                cornerIcon:Destroy()
+            end)
         end
-    end)
+    end
 end
+
+-- Проверяем каждые 0.5 секунд
+local menuCheckConnection = game:GetService("RunService").Stepped:Connect(function()
+    checkMenuClosed()
+end)
 
 -- УБИРАЕМ ЗАГРУЗОЧНУЮ ИКОНКУ
 fadeOut:Play()
 task.wait(0.6)
 splashGui:Destroy()
 
--- ВЫЗОВ УВЕДОМЛЕНИЯ (после полной загрузки)
-ShowMinimalNotification(106362808798929, "XENO DARK V17 loaded successfully!", 4)
-
-print("XENO DARK V17 [MinimalUI] Loaded!")
+print("XENO DARK V17 [MinimalUI] Loaded with corner icon!")
