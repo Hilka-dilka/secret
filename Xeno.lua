@@ -1,4 +1,4 @@
--- ЗАГРУЗОЧНАЯ ИКОНКА (ПОЯВЛЯЕТСЯ ПЕРВОЙ)
+-- loading icon
 local player = game.Players.LocalPlayer
 local splashGui = Instance.new("ScreenGui")
 splashGui.Name = "MinimalUILoader"
@@ -39,7 +39,7 @@ fadeIn:Play()
 task.wait(0.8)
 task.wait(0.5)
 
--- ========== ОСНОВНОЙ КОД ==========
+-- main
 local MinimalUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hilka-dilka/MinimalUI/main/MinimalUI_test.lua"))()
 
 local player = game.Players.LocalPlayer
@@ -66,7 +66,7 @@ local settings = {
     aimbotSmoothness = 5,
     aimPart = "Head",
     showFovCircle = false,
-    aimOnKey = true,
+    aimOnKey = false,
     wallCheck = false,
     aimKey = Enum.UserInputType.MouseButton2,
     gravityEnabled = false,
@@ -74,9 +74,7 @@ local settings = {
     teleportToMouse = false
 }
 
-------------------------------------------------------------------------
--- Teleport to Mouse Function
-------------------------------------------------------------------------
+-- tp to mouse
 local function teleportToMouse()
     local char = player.Character
     if not char then return end
@@ -100,13 +98,12 @@ local function teleportToMouse()
             hrp.Anchored = true
         end
         
-        print("Teleported to mouse position")
+
     end
 end
 
-------------------------------------------------------------------------
--- Функция для поиска игрока по первым буквам
-------------------------------------------------------------------------
+
+-- find player
 local function findPlayerByPartialName(partialName)
     if not partialName or partialName == "" then return nil end
     
@@ -126,9 +123,8 @@ local function findPlayerByPartialName(partialName)
     return bestMatch
 end
 
-------------------------------------------------------------------------
+
 -- aimbot
-------------------------------------------------------------------------
 local Drawing = Drawing or {}
 local fovCircle = Drawing.new("Circle")
 if fovCircle then
@@ -383,9 +379,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 
-------------------------------------------------------------------------
--- FREECAM
-------------------------------------------------------------------------
+-- freecam
 local pi, rad, clamp, exp = math.pi, math.rad, math.clamp, math.exp
 local NAV_GAIN = Vector3.new(1, 1, 1)*64
 local PAN_GAIN = Vector2.new(0.2, 0.2)*0.8
@@ -534,9 +528,7 @@ UIS.InputEnded:Connect(function(i)
 end)
 
 
-------------------------------------------------------------------------
--- FLY
-------------------------------------------------------------------------
+-- fly
 local flyActive = false
 
 local function ToggleFly(state)
@@ -552,9 +544,7 @@ local function ToggleFly(state)
     end
 end
 
-------------------------------------------------------------------------
--- NOCLIP
-------------------------------------------------------------------------
+-- noclip
 local noclipConnection = nil
 local noclipActive = false
 
@@ -601,9 +591,7 @@ local function toggleNoclip(state)
 end
 
 
-------------------------------------------------------------------------
--- UI
-------------------------------------------------------------------------
+-- ui
 
 local Window = MinimalUI:CreateWindow("XENO DARK V17")
 Window:SetTheme(Color3.fromRGB(0, 60, 150))
@@ -626,7 +614,6 @@ flyToggleSlider = MovementSec:CreateToggleSlider("Fly (Q)", 0.1, 5, 0.8, false, 
     settings.fly = enabled
     settings.flySpeed = value
     ToggleFly(enabled)
-    print("Fly toggled via UI:", enabled, "Speed:", value)
 end)
 
 walkToggleSlider = MovementSec:CreateToggleSlider("Walk Boost", 0.1, 3, 0.5, false, function(enabled, value)
@@ -698,14 +685,10 @@ AimbotSec:CreateToggle("Wall Check", false, function(v)
     settings.wallCheck = v
 end)
 
-------------------------------------------------------------------------
--- Other
-------------------------------------------------------------------------
-local OtherTab = Window:CreateTab("🛠 OTHER")
 
-------------------------------------------------------------------------
--- View Section (Spectate)
-------------------------------------------------------------------------
+-- other tab
+
+local OtherTab = Window:CreateTab("🛠 OTHER")
 local ViewSec = OtherTab:CreateSection("👁 VIEW")
 
 local selectedViewPlayer = nil
@@ -753,7 +736,6 @@ local function startSpectating()
         if target and target.Character then
             workspace.CurrentCamera.CameraSubject = target.Character
             isSpectating = true
-            print("Now spectating: " .. selectedViewPlayer)
         end
     end
 end
@@ -766,7 +748,7 @@ local function stopSpectating()
     end
 end
 
-viewTextBoxApi = ViewSec:CreateTextBox("Enter player name (auto-complete):", "Type first letters...", function(inputText)
+viewTextBoxApi = ViewSec:CreateTextBox("Enter player name:", "Type first letters...", function(inputText)
     if inputText and inputText ~= "" then
         local matchedPlayer = findPlayerByPartialName(inputText)
         if matchedPlayer then
@@ -801,9 +783,7 @@ ViewSec:CreateToggle("👁 Spectate Mode", false, function(v)
     end
 end)
 
-------------------------------------------------------------------------
--- Teleport Section
-------------------------------------------------------------------------
+
 local TeleportSec = OtherTab:CreateSection("📍 TELEPORT")
 
 local selectedPlayer = nil
@@ -851,7 +831,7 @@ local function refreshPlayerDropdown()
     playerDropdown:SetOptions(newList)
 end
 
-teleportTextBoxApi = TeleportSec:CreateTextBox("Enter player name (auto-complete):", "Type first letters...", function(inputText)
+teleportTextBoxApi = TeleportSec:CreateTextBox("Enter player name:", "Type first letters...", function(inputText)
     if inputText and inputText ~= "" then
         local matchedPlayer = findPlayerByPartialName(inputText)
         if matchedPlayer then
@@ -895,7 +875,7 @@ teleportToMouseToggle = TeleportSec:CreateToggle("🎯 Teleport to Mouse (Ctrl+L
     settings.teleportToMouse = v
 end)
 
--- Gravity
+
 local GravitySec = OtherTab:CreateSection("🌍 GRAVITY")
 
 GravitySec:CreateToggleSlider("Gravity Control", 0, 196.2, 50, false, function(enabled, value)
@@ -913,17 +893,14 @@ end)
 local InfoTab = Window:CreateTab("ℹ INFO")
 local InfoSec = InfoTab:CreateSection("ABOUT")
 InfoSec:CreateButton("XENO DARK V17", function()
-    print("XENO DARK V17 - Ultimate Cheat Hub")
+    print("XENO DARK V17 - Ultimate Cheat Hub by: Hilka-dilka (github)")
 end)
-InfoSec:CreateButton("Credits: Xeno Team", function() end)
+InfoSec:CreateButton("Credits: Hilka-dilka , MinimalUI (github)", function() end)
 InfoSec:CreateButton("Version: 17.0", function() end)
 
 Window:SetKey(Enum.KeyCode.RightControl)
 
-
-------------------------------------------------------------------------
 -- esp
-------------------------------------------------------------------------
 local lastESPUpdate = 0
 
 local function clearAllESP()
@@ -1086,7 +1063,7 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- ГЛАВНЫЙ ОБРАБОТЧИК КЛАВИШ
+
 UIS.InputBegan:Connect(function(i, gp)
     if gp then return end
     
@@ -1132,50 +1109,4 @@ end)
 
 player.CameraMaxZoomDistance = 1000
 
--- ========== ИКОНКА СПРАВА СВЕРХУ (ПОЛУПРОЗРАЧНАЯ, НЕ ИСЧЕЗАЕТ) ==========
-local cornerIcon = Instance.new("ImageLabel")
-cornerIcon.Name = "MinimalUICornerIcon"
-cornerIcon.Size = UDim2.new(0, 48, 0, 48)
-cornerIcon.Position = UDim2.new(1, -58, 0, 10)
-cornerIcon.BackgroundTransparency = 1
-cornerIcon.Image = "rbxassetid://106362808798929"
-cornerIcon.ImageTransparency = 0.6 -- полупрозрачная
-cornerIcon.ScaleType = Enum.ScaleType.Fit
-cornerIcon.ZIndex = 999
-cornerIcon.Parent = player.PlayerGui
-
--- Анимация плавного появления
-local cornerFadeIn = tweenService:Create(cornerIcon, 
-    TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
-    {ImageTransparency = 0.6}
-)
-cornerFadeIn:Play()
-
--- Следим за закрытием меню (если GUI удалится, удаляем и иконку)
-local function checkMenuClosed()
-    local menuGui = player.PlayerGui:FindFirstChild("MinimalUI")
-    if not menuGui then
-        if cornerIcon and cornerIcon.Parent then
-            local cornerFadeOut = tweenService:Create(cornerIcon, 
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), 
-                {ImageTransparency = 1}
-            )
-            cornerFadeOut:Play()
-            cornerFadeOut.Completed:Connect(function()
-                cornerIcon:Destroy()
-            end)
-        end
-    end
-end
-
--- Проверяем каждые 0.5 секунд
-local menuCheckConnection = game:GetService("RunService").Stepped:Connect(function()
-    checkMenuClosed()
-end)
-
--- УБИРАЕМ ЗАГРУЗОЧНУЮ ИКОНКУ
-fadeOut:Play()
-task.wait(0.6)
-splashGui:Destroy()
-
-print("XENO DARK V17 [MinimalUI] Loaded with corner icon!")
+print("XENO DARK V17 by: Hilka-dilka(github) [MinimalUI]")
